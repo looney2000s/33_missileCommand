@@ -29,9 +29,30 @@ def explosion_color(progress):
     return stops[-1][1]
 
 def on_city_destroyed(city):
-    """Called when a city is hit; add screen shake, sounds, or a game-over warning here."""
-    pass
+    """Trigger visual feedback for a newly destroyed city."""
+    game = getattr(city, "game", None)
+    if game is None:
+        return
 
+    remaining = sum(c.alive for c in game.cities)
+
+    # ADDED: brief screen shake; stronger when fewer cities remain.
+    game.shake_time = 0.35
+    game.shake_strength = 14 if remaining <= 2 else 10
+
+    # ADDED: warning message, escalating when only a few cities remain.
+    if remaining == 0:
+        game.warning_text = "ALL CITIES LOST"
+    elif remaining <= 3:
+        game.warning_text = (
+            f"{remaining} CITIES REMAINING"
+            if remaining != 1
+            else "1 CITY REMAINING"
+        )
+    else:
+        game.warning_text = "CITY DESTROYED"
+
+    game.warning_time = 1.8
 
 def city_repair_threshold():
     """Return a score value at which a destroyed city is rebuilt, or None to disable city repair."""
